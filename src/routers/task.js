@@ -1,9 +1,15 @@
-const express = require("express")
-const router = new express.Router()
+const express = require('express');
+const router = new express.Router();
 const Task = require('../models/task');
+const auth = require('../middleware/auth')
+
 // Create new task POST /tasks
-router.post('/tasks', async (req, res) => {
-  const task = new Task(req.body);
+router.post('/tasks',auth, async (req, res) => {
+  // const task = new Task(req.body);
+  const task = new Task({
+    ...req.body,
+    owner: req.user._id
+  })
 
   try {
     await task.save();
@@ -40,43 +46,49 @@ router.get('/tasks/:id', async (req, res) => {
   }/**/
 });
 
-router.patch("/tasks/:id", async (req,res) => {
-  const updates = Object.keys(req.body)
-  const allowedUpdates = ["description","completed"]
-  const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
+router.patch('/tasks/:id', async (req, res) => {
+  const updates = Object.keys(req.body);
+  const allowedUpdates = ['description', 'completed'];
+  const isValidOperation = updates.every(
+      (update) => allowedUpdates.includes(update));
 
   if (!isValidOperation) {
     if (updates.length === 1) {
-      return res.status(400).send({error:'Invalid update!'})
+      return res.status(400).send({error: 'Invalid update!'});
     }
-    return res.status(400).send({error: 'Invalid updates!'})
+    return res.status(400).send({error: 'Invalid updates!'});
   }
 
   try {
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+    const task = await Task.findById(req.params.id);
+
+    updates.forEach(update => task[update] = req.body[update]);
+
+    await task.save();
+    // const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
     if (!task) {
-      return res.status(404).send()
+      return res.status(404).send();
     }
 
-    res.status(200).send(task)
+    res.status(200).send(task);
   } catch (e) {
-    res.status(400).send(e)
+    res.status(400).send(e);
   }
-})
+});
 
 // Delete a task DELETE /tasks/:id
-router.delete("/tasks/:id", async (req,res) => {
+router.delete('/tasks/:id', async (req, res) => {
   try {
-    const task = await Task.findByIdAndDelete(req.params.id)
+    const task = await Task.findByIdAndDelete(req.params.id);
 
     if (!task) {
-      return res.status(404).send()
+      return res.status(404).send();
     }
 
-    res.status(200).send(task)
+    res.status(200).send(task);
   } catch (e) {
-    res.status(500).send()
+    res.status(500).send();
   }
-})
+});
 
-module.exports = router
+module.exports = router;
