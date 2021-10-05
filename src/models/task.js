@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const User = require('./user');
 const taskSchema = new mongoose.Schema({
   description: {
     type: String,
@@ -13,8 +13,10 @@ const taskSchema = new mongoose.Schema({
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref:'User'
-  }
+    ref: 'User',
+  },
+}, {
+  timestamps: true,
 });
 
 const Task = mongoose.model('Task', taskSchema);
