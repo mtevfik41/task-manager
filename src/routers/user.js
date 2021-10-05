@@ -19,7 +19,8 @@ router.post('/users', async (req, res) => {
 // User Login Page
 router.post('/users/login', async (req, res) => {
   try {
-    const user = await User.findByCredentials(req.body.email, req.body.password);
+    const user = await User.findByCredentials(req.body.email,
+        req.body.password);
     const token = await user.generateAuthToken();
     res.send({user, token});
   } catch (e) {
@@ -86,7 +87,7 @@ router.get('/users/:id', async (req, res) => {
 });
 
 // Update an user with a specific ID PATCH /users/:id
-router.patch('/users/me',auth, async (req, res) => {
+router.patch('/users/me', auth, async (req, res) => {
   const updates = Object.keys(req.body);
   const allowedUpdates = ['name', 'email', 'password', 'age'];
   const isValidOperation = updates.every(
@@ -116,9 +117,9 @@ router.patch('/users/me',auth, async (req, res) => {
 });
 
 // Delete a user DELETE /users/me
-router.delete('/users/me', auth,async (req, res) => {
+router.delete('/users/me', auth, async (req, res) => {
   try {
-    await req.user.remove()
+    await req.user.remove();
 
     res.status(200).send(req.user);
   } catch (e) {
