@@ -23,9 +23,36 @@ router.post('/tasks', auth, async (req, res) => {
 });
 
 // Get All Tasks GET /tasks
+// GET /tasks?completed=true
+// GET /tasks?limit=10&skip=0
+// GET /tasks?sortBy=createdAt:asc
 router.get('/tasks', auth, async (req, res) => {
+  const match = {};
+  const sort = {};
+  if (req.query.completed) {
+    if (req.query.completed === 'true') {
+      match.completed = true;
+    } else if (req.query.completed === 'false')
+      match.completed = false;
+  }
+  if (req.query.sortBy) {
+    const parts = req.query.sortBy.split(':');
+    if (parts[1] === 'desc') {
+      sort[parts[0]] = -1;
+    } else if (parts[1] === 'asc') {
+      sort[parts[0]] = 1;
+    }
+  }
   try {
-    await req.user.populate('tasks');
+    await req.user.populate({
+      path: 'tasks',
+      match,
+      options: {
+        limit: parseInt(req.query.limit),
+        skip: parseInt(req.query.skip),
+        sort,
+      },
+    });
     res.status(200).send(req.user.tasks);
   } catch (e) {
     res.status(400).send();
